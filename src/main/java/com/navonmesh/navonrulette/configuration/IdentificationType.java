@@ -54,7 +54,7 @@ interface IdentificationTypeMethod {
 @JsonSerialize(converter = IdentificationType.IdentificationTypeToDtoConverter.class)
 public enum IdentificationType implements IdentificationTypeMethod {
 
-    INDIVIDUAL("Equifax Report",
+    INDIVIDUAL_EQUIFAX_REPORT("Equifax Report",
             Arrays.asList(
                     DataAttributeType.NO_OF_ACCOUNTS,
                     DataAttributeType.NO_OF_ACTIVE_ACCOUNTS,

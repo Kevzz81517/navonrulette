@@ -3,7 +3,7 @@ package com.navonmesh.navonrulette.rule.type;
 public enum RuleType {
 
     SIGNAL,
-    CATEGORICAL,
+    CATEGORY,
     ALERT,
-    EWS
+    RISK_SCORE
 }

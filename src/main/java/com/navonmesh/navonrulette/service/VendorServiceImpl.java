@@ -44,7 +44,7 @@ public class VendorServiceImpl {
     public static final Map<String, ExternalRepositoryInfo> EXTERNAL_REPOSITORIES = new ConcurrentHashMap<>();
 
 
-    public KieContainer addTenantKieContainer(String institutionPackage, String artifact, String version, String url, String username, String password) throws MalformedURLException {
+    public KieContainer addTenantKieContainer(String institutionPackage, String artifact, String version, String url, String username, String password) {
         String tenantId = institutionPackage + "." + artifact;
         if (KIE_CONTAINERS.containsKey(tenantId)) {
             throw new ApplicationException("Already Exists");
@@ -180,7 +180,8 @@ public class VendorServiceImpl {
                     switch (ruleType) {
                         case SIGNAL: {
 
-                            List<String> supportingCategories = Arrays.asList(((String) meta.get("SupportingCategories")).split(","));
+                            List<String> supportingCategories = meta.get("SupportingCategories") != null ?
+                                    Arrays.asList(((String) meta.get("SupportingCategories")).split(",")) : Collections.emptyList();
                             Set<String> dataSources = new HashSet<>();
                             Calendar maxDatasourceDate = null;
 
@@ -243,7 +244,7 @@ public class VendorServiceImpl {
                                     signalCriticality.getAlertSeverity());
                             break;
                         }
-                        case EWS: {
+                        case RISK_SCORE: {
 
                             Object thresholdMeta = meta.get("AlertThreshold");
                             List<String> supportingTags = null;
@@ -259,7 +260,7 @@ public class VendorServiceImpl {
                                     alertSeverity);
                             break;
                         }
-                        case CATEGORICAL: {
+                        case CATEGORY: {
 
                             double weightage = Double.parseDouble(String.valueOf(meta.get("Weightage")));
                             List<String> supportingTags = null;

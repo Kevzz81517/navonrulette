@@ -12,7 +12,7 @@ public class DefaultRuleConfiguration {
 
     public static List<DatapointRuleConfiguration> datapointRuleConfigurations = List.of(
             DatapointRuleConfiguration.builder()
-                    .identificationType(IdentificationType.INDIVIDUAL)
+                    .identificationType(IdentificationType.INDIVIDUAL_EQUIFAX_REPORT)
                     .factEntityRuleClass(IndividualEquifaxReportFactEntityV1.class)
                     .flatFactEntityRuleClass(IndividualEquifaxReportFlatFactEntityV1.class)
                     .build()
