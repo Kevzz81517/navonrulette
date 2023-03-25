@@ -14,13 +14,13 @@ public class ScoreEntityThresholdBasedAlertRuleEntity extends AlertRuleEntity {
 
     private NumericRuleEntity numericRuleEntity;
 
-    public ScoreEntityThresholdBasedAlertRuleEntity(String reference, RuleType ruleType, String ruleName, NumericRuleEntity numericRuleEntity) {
-        super(reference, ruleType, ruleName);
+    public ScoreEntityThresholdBasedAlertRuleEntity(RuleType ruleType, String ruleName, NumericRuleEntity numericRuleEntity) {
+        super(ruleType, ruleName);
         this.numericRuleEntity = numericRuleEntity;
     }
 
     @Override
     public String getKey() {
-        return super.getReference() + "|" + this.numericRuleEntity.getReference();
+        return super.getRuleName() + "|" + this.numericRuleEntity.getRuleName();
     }
 }

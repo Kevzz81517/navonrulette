@@ -1,14 +1,19 @@
-package com.navonmesh.navonrulette.service;
+package com.navonmesh.navonrulette.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-
 @Data
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-public class Institution {
+public class Product {
+
+    private String artifactId;
+
+    private String versionPattern;
 
     private String username;
 
@@ -16,7 +21,4 @@ public class Institution {
 
     private String url;
 
-    private String version;
-
-    private String tenantId;
 }

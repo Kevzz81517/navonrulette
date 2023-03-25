@@ -1,4 +1,4 @@
-package com.navonmesh.navonrulette.configuration;
+package com.navonmesh.navonrulette.configuration.constant;
 
 public class DataFormatConstant {
 

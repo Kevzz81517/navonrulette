@@ -1,7 +1,7 @@
 package org.appformer.maven.integration;
 
 import com.navonmesh.navonrulette.exception.ApplicationException;
-import com.navonmesh.navonrulette.service.VendorServiceImpl;
+import com.navonmesh.navonrulette.service.VendorService;
 import org.apache.maven.project.MavenProject;
 import org.appformer.maven.integration.embedder.EmbeddedPomParser;
 import org.appformer.maven.support.AFReleaseId;
@@ -10,6 +10,7 @@ import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.util.repository.AuthenticationBuilder;
+import org.springframework.http.HttpStatus;
 
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
@@ -23,16 +24,16 @@ public class DefaultArtifactResolver extends ArtifactResolver {
     public DefaultArtifactResolver() {
         this.pomParser = new EmbeddedPomParser();
         this.mavenRepository = MavenRepository.getMavenRepository();
-        VendorServiceImpl.EXTERNAL_REPOSITORIES.forEach((tenantId, externalRepositoryInfo) -> {
+        VendorService.PRODUCT_INFOS.forEach((tenantId, tenantInfo) -> {
             try {
                 Field field = this.mavenRepository.getClass()
                         .getDeclaredField("remoteRepositoriesForRequest");
                 field.setAccessible(true);
                 ((Collection<RemoteRepository>) (field.get(this.mavenRepository))).add(
-                        new RemoteRepository.Builder(tenantId, "default", externalRepositoryInfo.getUrl())
+                        new RemoteRepository.Builder(tenantId, "default", tenantInfo.getUrl())
                                 .setAuthentication(
-                                        new AuthenticationBuilder().addUsername(externalRepositoryInfo.getUsername())
-                                                .addPassword(externalRepositoryInfo.getPassword())
+                                        new AuthenticationBuilder().addUsername(tenantInfo.getUsername())
+                                                .addPassword(tenantInfo.getPassword())
                                                 .build()
                                 )
                                 .setSnapshotPolicy(new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_WARN))
@@ -40,9 +41,9 @@ public class DefaultArtifactResolver extends ArtifactResolver {
                                 .setReleasePolicy(new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_WARN))
                                 .build()
                 );
-            } catch (NoSuchFieldException | IllegalAccessException e) {
+            } catch (NoSuchFieldException | IllegalAccessException ex) {
 
-                throw new ApplicationException("Error Loading Artifact");
+                throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Error Loading Artifact", ex);
             }
         });
     }
@@ -50,7 +51,7 @@ public class DefaultArtifactResolver extends ArtifactResolver {
     DefaultArtifactResolver(MavenProject mavenProject) {
         this.pomParser = new EmbeddedPomParser(mavenProject);
         this.mavenRepository = MavenRepository.getMavenRepository(mavenProject);
-        VendorServiceImpl.EXTERNAL_REPOSITORIES.forEach((tenantId, externalRepositoryInfo) -> {
+        VendorService.PRODUCT_INFOS.forEach((tenantId, externalRepositoryInfo) -> {
             try {
                 Field field = this.mavenRepository.getClass()
                         .getDeclaredField("remoteRepositoriesForRequest");
@@ -67,9 +68,9 @@ public class DefaultArtifactResolver extends ArtifactResolver {
                                 .setReleasePolicy(new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_WARN))
                                 .build()
                 );
-            } catch (NoSuchFieldException | IllegalAccessException e) {
+            } catch (NoSuchFieldException | IllegalAccessException ex) {
 
-                throw new ApplicationException("Error Loading Artifact");
+                throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Error Loading Artifact",ex);
             }
         });
     }
@@ -77,7 +78,7 @@ public class DefaultArtifactResolver extends ArtifactResolver {
     DefaultArtifactResolver(PomParser pomParser) {
         this.pomParser = pomParser;
         this.mavenRepository = MavenRepository.getMavenRepository();
-        VendorServiceImpl.EXTERNAL_REPOSITORIES.forEach((tenantId, externalRepositoryInfo) -> {
+        VendorService.PRODUCT_INFOS.forEach((tenantId, externalRepositoryInfo) -> {
             try {
                 Field field = this.mavenRepository.getClass()
                         .getDeclaredField("remoteRepositoriesForRequest");
@@ -96,7 +97,7 @@ public class DefaultArtifactResolver extends ArtifactResolver {
                 );
             } catch (NoSuchFieldException | IllegalAccessException e) {
 
-                throw new ApplicationException("Error Loading Artifact");
+                throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Error Loading Artifact", e);
             }
         });
     }

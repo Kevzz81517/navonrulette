@@ -23,8 +23,8 @@ public class NumericRuleEntity extends RuleEntity {
 
     private String supportingDescription;
 
-    public NumericRuleEntity(String reference, RuleType ruleType, double value, String ruleName, Double alertThreshold, Object[] supportingValues, String supportingDescription, AlertSeverityType alertSeverity) {
-        super(reference, ruleType, ruleName);
+    public NumericRuleEntity(RuleType ruleType, double value, String ruleName, Double alertThreshold, Object[] supportingValues, String supportingDescription, AlertSeverityType alertSeverity) {
+        super(ruleType, ruleName);
         this.value = value;
         this.alertThreshold = alertThreshold;
         if (supportingValues != null && supportingValues.length > 0) {

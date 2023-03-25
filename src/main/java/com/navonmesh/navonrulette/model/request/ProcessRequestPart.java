@@ -1,6 +1,6 @@
-package com.navonmesh.navonrulette;
+package com.navonmesh.navonrulette.model.request;
 
-import com.navonmesh.navonrulette.configuration.IdentificationType;
+import com.navonmesh.navonrulette.configuration.type.IdentificationType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,12 +1,16 @@
 package com.navonmesh.navonrulette.service;
 
+import com.navonmesh.navonrulette.configuration.ApplicationTenantConfiguration;
 import com.navonmesh.navonrulette.configuration.DefaultRuleConfiguration;
-import com.navonmesh.navonrulette.configuration.IdentificationType;
+import com.navonmesh.navonrulette.configuration.type.IdentificationType;
 import com.navonmesh.navonrulette.exception.ApplicationException;
+import com.navonmesh.navonrulette.model.Institution;
+import com.navonmesh.navonrulette.model.TenantInfo;
 import com.navonmesh.navonrulette.rule.*;
 import com.navonmesh.navonrulette.rule.type.AlertSeverityType;
 import com.navonmesh.navonrulette.rule.type.RuleType;
 import com.navonmesh.navonrulette.rule.type.SignalCriticalityType;
+import org.appformer.maven.integration.DefaultArtifactResolver;
 import org.drools.core.command.runtime.rule.FireAllRulesCommand;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieScanner;
@@ -18,7 +22,9 @@ import org.kie.api.runtime.ExecutionResults;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.StatelessKieSession;
 import org.kie.internal.command.CommandFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -30,30 +36,58 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.appformer.maven.integration.DefaultArtifactResolver;
+@Service("VendorService")
+public class VendorService {
 
-@Service
-public class VendorServiceImpl {
-
-    @Value("${rule.change.scanner.time.millis}")
     private long ruleChangeScannerTiming;
 
+    private ApplicationTenantConfiguration applicationTenantConfiguration;
 
     private final Map<String, KieContainer> KIE_CONTAINERS = new ConcurrentHashMap<>();
 
-    public static final Map<String, ExternalRepositoryInfo> EXTERNAL_REPOSITORIES = new ConcurrentHashMap<>();
+
+    private final List<Institution> institutions;
+
+    public static final Map<String, TenantInfo> PRODUCT_INFOS = new ConcurrentHashMap<>();
 
 
-    public KieContainer addTenantKieContainer(String institutionPackage, String artifact, String version, String url, String username, String password) {
+    @Autowired
+    public VendorService(ApplicationTenantConfiguration applicationTenantConfiguration, @Value("${rule.change.scanner.time.millis}") long ruleChangeScannerTiming) {
+        this.applicationTenantConfiguration = applicationTenantConfiguration;
+        this.institutions = this.applicationTenantConfiguration.getInstitutions();
+        this.ruleChangeScannerTiming = ruleChangeScannerTiming;
+
+        this.applicationTenantConfiguration.getInstitutions().forEach(institution -> {
+
+            institution.getProducts().forEach(product -> {
+
+                addTenantKieContainer(
+                        institution.getInstitutionPackage(),
+                        institution.getApiKey(),
+                        product.getArtifactId(),
+                        product.getVersionPattern(),
+                        product.getUrl(),
+                        product.getUsername(),
+                        product.getPassword()
+                );
+            });
+        });
+    }
+
+
+    public KieContainer addTenantKieContainer(String institutionPackage, String apiKey, String artifact, String version, String url, String username, String password) {
         String tenantId = institutionPackage + "." + artifact;
         if (KIE_CONTAINERS.containsKey(tenantId)) {
-            throw new ApplicationException("Already Exists");
+
+            throw new ApplicationException(HttpStatus.CONFLICT, "Tenant Already Exists");
         } else {
-            EXTERNAL_REPOSITORIES.put(
+
+            PRODUCT_INFOS.put(
                     tenantId,
-                    ExternalRepositoryInfo.builder().url(url)
+                    TenantInfo.builder().url(url)
                             .username(username)
                             .password(password)
+                            .apiKey(apiKey)
                             .build()
             );
 
@@ -84,7 +118,7 @@ public class VendorServiceImpl {
 
         } else {
 
-            throw new ApplicationException(tenantId + " Doesn't Exists");
+            throw new ApplicationException(HttpStatus.NOT_FOUND, tenantId + " Doesn't Exists");
         }
     }
 
@@ -169,8 +203,6 @@ public class VendorServiceImpl {
 
                     Map<String, Object> meta = ruleData.get(ruleName);
 
-                    String reference = (String) meta.get("Reference");
-
                     RuleType ruleType = RuleType.valueOf(((String) meta.get("RuleType")));
 
                     RuleEntity ruleEntity = null;
@@ -237,7 +269,7 @@ public class VendorServiceImpl {
                             Double threshold = thresholdMeta != null ? Double.parseDouble(String.valueOf(thresholdMeta)) : null;
                             SignalCriticalityType signalCriticality = SignalCriticalityType.valueOf((String) meta.get("Criticality"));
                             double weightage = signalCriticality.getWeightage();
-                            ruleEntity = new SignalRuleEntity(reference, ruleType,
+                            ruleEntity = new SignalRuleEntity(ruleType,
                                     ((NumericRuleResponse) res).getValue(), ruleName, supportingCategories, supportingTags,
                                     datasourceDate, new ArrayList<>(dataSources), weightage,
                                     threshold, ((NumericRuleResponse) res).getSupportingValues(), supportedDescription,
@@ -254,7 +286,7 @@ public class VendorServiceImpl {
                             }
                             AlertSeverityType alertSeverity = AlertSeverityType.valueOf((String) Objects.requireNonNull(meta.get("AlertSeverity")));
                             Double threshold = thresholdMeta != null ? Double.parseDouble(String.valueOf(thresholdMeta)) : null;
-                            ruleEntity = new EwsScoreRuleEntity(reference, ruleType,
+                            ruleEntity = new RiskScoreRuleEntity(ruleType,
                                     ((NumericRuleResponse) res).getValue(), ruleName, threshold, supportingTags,
                                     ((NumericRuleResponse) res).getSupportingValues(), supportedDescription,
                                     alertSeverity);
@@ -287,7 +319,7 @@ public class VendorServiceImpl {
                                     if (o instanceof RuleEntity) {
                                         RuleEntity affectingRuleEntity = (RuleEntity) o;
                                         List<String> refs = affectingReferences.getOrDefault(affectingRuleEntity.getRuleType(), new ArrayList<>());
-                                        refs.add(affectingRuleEntity.getReference());
+                                        refs.add(affectingRuleEntity.getRuleType() + ":" + affectingRuleEntity.getRuleName());
                                         affectingReferences.put(affectingRuleEntity.getRuleType(), refs);
                                     }
                                     if (o instanceof SignalRuleEntity) {
@@ -304,7 +336,7 @@ public class VendorServiceImpl {
 
                             Calendar maxDatasourceDateClone = (Calendar) maxDatasourceDate.get().clone();
 
-                            ruleEntity = new CategoryRuleEntity(reference, ruleType,
+                            ruleEntity = new CategoryRuleEntity(ruleType,
                                     ((NumericRuleResponse) res).getValue(), ruleName, affectingReferences, weightage, supportingTags, maxDatasourceDateClone,
                                     threshold, ((NumericRuleResponse) res).getSupportingValues(), supportedDescription,
                                     alertSeverity);
@@ -317,9 +349,9 @@ public class VendorServiceImpl {
                                 if (tags != null) {
                                     supportingTags = new ArrayList<>(Arrays.asList(tags.split(",")));
                                 }
-                                ruleEntity = new SimpleAlertRuleEntity(reference, ruleType, ruleName, supportingTags);
+                                ruleEntity = new SimpleAlertRuleEntity(ruleType, ruleName, supportingTags);
                             } else if (result instanceof ScoreEntityThresholdBasedAlertRuleResponse) {
-                                ruleEntity = new ScoreEntityThresholdBasedAlertRuleEntity(reference, ruleType, ruleName, ((ScoreEntityThresholdBasedAlertRuleResponse) result).getNumericRuleEntity());
+                                ruleEntity = new ScoreEntityThresholdBasedAlertRuleEntity(ruleType, ruleName, ((ScoreEntityThresholdBasedAlertRuleResponse) result).getNumericRuleEntity());
                             }
                             break;
                         }
@@ -328,6 +360,12 @@ public class VendorServiceImpl {
                 });
 
         return ruleEntities;
+    }
+
+    public Optional<TenantInfo> findTenantInfoByTenantId(String tenantId) {
+
+
+        return Optional.ofNullable(PRODUCT_INFOS.get(tenantId));
     }
 
 

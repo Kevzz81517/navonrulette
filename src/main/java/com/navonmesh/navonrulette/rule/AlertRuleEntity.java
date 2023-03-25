@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public abstract class AlertRuleEntity extends RuleEntity {
 
-    public AlertRuleEntity(String reference, RuleType ruleType, String ruleName) {
-        super(reference, ruleType, ruleName);
+    public AlertRuleEntity(RuleType ruleType, String ruleName) {
+        super(ruleType, ruleName);
     }
 
     public abstract String getKey();

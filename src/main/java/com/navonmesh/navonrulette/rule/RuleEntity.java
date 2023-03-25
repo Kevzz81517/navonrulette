@@ -8,14 +8,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RuleEntity {
 
-    private String reference;
-
     private RuleType ruleType;
 
     private String ruleName;
 
-    public RuleEntity(String reference, RuleType ruleType, String ruleName) {
-        this.reference = reference;
+    public RuleEntity(RuleType ruleType, String ruleName) {
         this.ruleType = ruleType;
         this.ruleName = ruleName;
     }

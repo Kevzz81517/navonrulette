@@ -1,11 +1,12 @@
-package com.navonmesh.navonrulette;
+package com.navonmesh.navonrulette.model;
 
-import com.navonmesh.navonrulette.configuration.IdentificationType;
+import com.navonmesh.navonrulette.configuration.type.IdentificationType;
 import com.navonmesh.navonrulette.rule.MetaColumnType;
 import com.navonmesh.navonrulette.rule.MetaDataType;
 import com.navonmesh.navonrulette.exception.ApplicationException;
 import com.navonmesh.navonrulette.rule.DataAttribute;
 import lombok.Data;
+import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -57,9 +58,9 @@ public class Datapoint {
                     primaryMetas.add((String) value);
                 }
                 this.getClass().getDeclaredField(metaColumnType.getColumnName()).set(this, value);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
+            } catch (NoSuchFieldException | IllegalAccessException ex) {
 
-                throw new ApplicationException("Invalid Request");
+                throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid Request", ex);
             }
 
         }

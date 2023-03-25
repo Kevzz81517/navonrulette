@@ -1,4 +1,4 @@
-package com.navonmesh.navonrulette;
+package com.navonmesh.navonrulette.model.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

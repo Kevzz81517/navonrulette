@@ -25,10 +25,10 @@ public class CategoryRuleEntity extends NumericRuleEntity {
 
     private Calendar datasourceDate;
 
-    public CategoryRuleEntity(String reference, RuleType ruleType, double value, String ruleName, Map<RuleType,
+    public CategoryRuleEntity(RuleType ruleType, double value, String ruleName, Map<RuleType,
             List<String>> affectingReferences, double weightage, List<String> supportingTags, Calendar datasourceDate, Double alertThreshold, Object[] supportingValues,
                               String supportingDescription, AlertSeverityType alertSeverity) {
-        super(reference, ruleType, value, ruleName, alertThreshold, supportingValues, supportingDescription, alertSeverity);
+        super(ruleType, value, ruleName, alertThreshold, supportingValues, supportingDescription, alertSeverity);
         this.affectingReferences = affectingReferences;
         this.weightage = weightage;
         this.datasourceDate = datasourceDate;

@@ -14,13 +14,13 @@ public class SimpleAlertRuleEntity extends AlertRuleEntity {
 
     private List<String> supportingTags;
 
-    public SimpleAlertRuleEntity(String reference, RuleType ruleType, String ruleName, List<String> supportingTags) {
-        super(reference, ruleType, ruleName);
+    public SimpleAlertRuleEntity(RuleType ruleType, String ruleName, List<String> supportingTags) {
+        super(ruleType, ruleName);
         this.supportingTags = supportingTags;
     }
 
     @Override
     public String getKey() {
-        return super.getReference();
+        return super.getRuleName();
     }
 }

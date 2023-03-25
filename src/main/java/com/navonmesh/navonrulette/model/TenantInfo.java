@@ -1,4 +1,4 @@
-package com.navonmesh.navonrulette.service;
+package com.navonmesh.navonrulette.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,11 +9,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExternalRepositoryInfo {
+public class TenantInfo {
 
     private String url;
 
     private String username;
 
     private String password;
+
+    private String apiKey;
 }

@@ -1,8 +1,10 @@
 package com.navonmesh.navonrulette.configuration;
 
+import com.navonmesh.navonrulette.configuration.type.IdentificationType;
 import com.navonmesh.navonrulette.rule.IndividualEquifaxReportFactEntityV1;
 import com.navonmesh.navonrulette.rule.IndividualEquifaxReportFlatFactEntityV1;
 import com.navonmesh.navonrulette.exception.ApplicationException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -24,6 +26,6 @@ public class DefaultRuleConfiguration {
                 return defaultRuleConfiguration.getIdentificationType();
             }
         }
-        throw new ApplicationException("Invalid Definition");
+        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid Definition");
     }
 }

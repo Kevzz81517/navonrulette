@@ -1,8 +1,8 @@
 package com.navonmesh.navonrulette.rule;
 
 
-import com.navonmesh.navonrulette.configuration.DataFormatConstant;
-import com.navonmesh.navonrulette.configuration.DateFormattingUtility;
+import com.navonmesh.navonrulette.configuration.constant.DataFormatConstant;
+import com.navonmesh.navonrulette.configuration.util.DateFormattingUtility;
 
 import java.util.Calendar;
 

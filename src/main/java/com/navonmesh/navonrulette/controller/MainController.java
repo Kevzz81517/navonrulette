@@ -1,16 +1,20 @@
 package com.navonmesh.navonrulette.controller;
 
-import com.navonmesh.navonrulette.Datapoint;
-import com.navonmesh.navonrulette.ProcessRequest;
-import com.navonmesh.navonrulette.configuration.*;
+import com.navonmesh.navonrulette.model.Datapoint;
+import com.navonmesh.navonrulette.model.request.ProcessRequest;
+import com.navonmesh.navonrulette.configuration.DatapointRuleConfiguration;
+import com.navonmesh.navonrulette.configuration.DefaultRuleConfiguration;
+import com.navonmesh.navonrulette.configuration.constant.DataFormatConstant;
+import com.navonmesh.navonrulette.configuration.type.IdentificationType;
+import com.navonmesh.navonrulette.configuration.util.DateFormattingUtility;
 import com.navonmesh.navonrulette.exception.ApplicationException;
 import com.navonmesh.navonrulette.rule.*;
 import com.navonmesh.navonrulette.rule.type.DataAttributeType;
 import com.navonmesh.navonrulette.rule.type.RuleType;
-import com.navonmesh.navonrulette.service.Institution;
-import com.navonmesh.navonrulette.service.VendorServiceImpl;
+import com.navonmesh.navonrulette.service.VendorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,27 +25,11 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@RestController
+@RestController("MainController")
 public class MainController {
 
     @Autowired
-    private VendorServiceImpl vendorService;
-
-    @PostMapping("/institution/configuration")
-    public ResponseEntity<Institution> registerInstitution(@RequestBody Institution institution) {
-
-        String[] tenantIdparts = institution.getTenantId().split("\\.");
-        String artifact = tenantIdparts[tenantIdparts.length - 1];
-        String institutionPackage = String.join(".", Arrays.asList(tenantIdparts).subList(0, tenantIdparts.length - 1));
-        this.vendorService.addTenantKieContainer(
-                institutionPackage, artifact,
-                institution.getVersion(),
-                institution.getUrl(),
-                institution.getUsername(),
-                institution.getPassword()
-        );
-        return ResponseEntity.ok(institution);
-    }
+    private VendorService vendorService;
 
     @PostMapping("/data/process")
     public ResponseEntity<Map<RuleType, ? extends List<?>>> process(@RequestBody ProcessRequest processRequest) {
@@ -143,8 +131,7 @@ public class MainController {
                                         field.setAccessible(true);
                                         return field;
                                     } catch (NoSuchFieldException e) {
-                                        e.printStackTrace();
-                                        throw new ApplicationException("Error in fetching Primary Key");
+                                        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Error in fetching Primary Key");
                                     }
                                 }).collect(Collectors.toList());
                         Map<String, List<Datapoint>> primaryKeyWiseData = datapoints.get(datapointConfiguration.getIdentificationType()).stream()
@@ -153,8 +140,7 @@ public class MainController {
                                         try {
                                             return primaryKeyField.get(datapoint).toString();
                                         } catch (IllegalAccessException e) {
-                                            e.printStackTrace();
-                                            throw new ApplicationException("Error in Primary Key Creation");
+                                            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Error in fetching Primary Key");
                                         }
                                     }).collect(Collectors.joining());
                                 }));
@@ -253,28 +239,29 @@ public class MainController {
 
                                         return Pair.of(
                                                 keyset.getKey(),
-                                                keyset.getValue().stream().map(ruleEntity ->  {
-                                                  if (ruleEntity instanceof ScoreEntityThresholdBasedAlertRuleEntity) {
-                                                    return  ((ScoreEntityThresholdBasedAlertRuleEntity)ruleEntity).getNumericRuleEntity().getRuleType() + " '" + ((ScoreEntityThresholdBasedAlertRuleEntity)ruleEntity).getNumericRuleEntity().getRuleName() +
-                                                            "' crossed threshold of " +
-                                                            ((ScoreEntityThresholdBasedAlertRuleEntity)ruleEntity).getNumericRuleEntity().getAlertThreshold();
-                                                  } else {
-                                                      return ruleEntity.getRuleName();
-                                                  }
+                                                keyset.getValue().stream().map(ruleEntity -> {
+                                                    if (ruleEntity instanceof ScoreEntityThresholdBasedAlertRuleEntity) {
+                                                        return ((ScoreEntityThresholdBasedAlertRuleEntity) ruleEntity).getNumericRuleEntity().getRuleType() + " '" + ((ScoreEntityThresholdBasedAlertRuleEntity) ruleEntity).getNumericRuleEntity().getRuleName() +
+                                                                "' crossed threshold of " +
+                                                                ((ScoreEntityThresholdBasedAlertRuleEntity) ruleEntity).getNumericRuleEntity().getAlertThreshold();
+                                                    } else {
+                                                        return ruleEntity.getRuleName();
+                                                    }
                                                 }).collect(Collectors.toList())
                                         );
                                     }
                                     default: {
 
-                                        throw new ApplicationException("Invalid Request");
+                                        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid System Configuration of Rule Type");
                                     }
                                 }
                             }).collect(Collectors.toMap(keyset -> keyset.getFirst(), keyset -> keyset.getSecond()))
             );
 
+        } catch (ApplicationException applicationException) {
+            throw applicationException;
         } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new ApplicationException("Error Calibrating Scores " + ex.getLocalizedMessage());
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ex);
         }
     }
 
@@ -377,9 +364,8 @@ public class MainController {
                                         Field field = Datapoint.class.getDeclaredField(col);
                                         field.setAccessible(true);
                                         return field;
-                                    } catch (NoSuchFieldException e) {
-                                        e.printStackTrace();
-                                        throw new ApplicationException("Error in fetching Primary Key");
+                                    } catch (NoSuchFieldException ex) {
+                                        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ex);
                                     }
                                 }).collect(Collectors.toList());
                         Map<String, List<Datapoint>> primaryKeyWiseData = datapoints.get(datapointConfiguration.getIdentificationType()).stream()
@@ -387,9 +373,8 @@ public class MainController {
                                     return primaryKeyFields.stream().map(primaryKeyField -> {
                                         try {
                                             return primaryKeyField.get(datapoint).toString();
-                                        } catch (IllegalAccessException e) {
-                                            e.printStackTrace();
-                                            throw new ApplicationException("Error in Primary Key Creation");
+                                        } catch (IllegalAccessException ex) {
+                                            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ex);
                                         }
                                     }).collect(Collectors.joining());
                                 }));
@@ -472,9 +457,12 @@ public class MainController {
                             .collect(Collectors.groupingBy(RuleEntity::getRuleType))
             );
 
+        } catch (ApplicationException ex) {
+
+            throw ex;
         } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new ApplicationException("Error Calibrating Scores " + ex.getLocalizedMessage());
+
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ex);
         }
     }
 

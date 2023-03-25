@@ -1,6 +1,7 @@
-package com.navonmesh.navonrulette.configuration;
+package com.navonmesh.navonrulette.configuration.util;
 
 import com.navonmesh.navonrulette.exception.ApplicationException;
+import org.springframework.http.HttpStatus;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -17,7 +18,7 @@ public class DateFormattingUtility {
             Date date = originalDateFormat.parse(originalDate);
             return targetDateFormat.format(date);
         } catch (Exception ex) {
-            throw new ApplicationException("Invalid date format");
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid date format", ex);
         }
     }
 
@@ -27,7 +28,7 @@ public class DateFormattingUtility {
             DateFormat targetDateFormat = new SimpleDateFormat(targetFormat);
             return targetDateFormat.format(originalDate.getTime());
         } catch (Exception ex) {
-            throw new ApplicationException("Invalid date format");
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid date format", ex);
         }
     }
 
@@ -37,7 +38,7 @@ public class DateFormattingUtility {
             DateFormat targetDateFormat = new SimpleDateFormat(targetFormat);
             return targetDateFormat.format(originalDate);
         } catch (Exception ex) {
-            throw new ApplicationException("Invalid date format");
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid date format", ex);
         }
     }
 
@@ -52,7 +53,7 @@ public class DateFormattingUtility {
 
             return calendar;
         } catch (Exception ex) {
-            throw new ApplicationException("Invalid date format");
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid date format", ex);
         }
     }
 }

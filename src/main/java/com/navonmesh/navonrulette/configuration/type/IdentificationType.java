@@ -1,4 +1,4 @@
-package com.navonmesh.navonrulette.configuration;
+package com.navonmesh.navonrulette.configuration.type;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.util.StdConverter;

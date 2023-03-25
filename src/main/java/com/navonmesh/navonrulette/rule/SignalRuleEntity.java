@@ -24,10 +24,10 @@ public class SignalRuleEntity extends NumericRuleEntity {
 
     private double weightage;
 
-    public SignalRuleEntity(String reference, RuleType ruleType, Double value, String ruleName, List<String> supportingCategories,
+    public SignalRuleEntity(RuleType ruleType, Double value, String ruleName, List<String> supportingCategories,
                             List<String> supportingTags, Calendar datasourceDate, List<String> datasource, double weightage, Double alertThreshold,
                             Object[] supportingValues, String supportingDescription, AlertSeverityType alertSeverity) {
-        super(reference, ruleType, value, ruleName, alertThreshold, supportingValues, supportingDescription, alertSeverity);
+        super(ruleType, value, ruleName, alertThreshold, supportingValues, supportingDescription, alertSeverity);
         this.supportingCategories = supportingCategories;
         this.supportingTags = supportingTags;
         this.weightage = weightage;

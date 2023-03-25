@@ -7,13 +7,13 @@ import lombok.NoArgsConstructor;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class EwsRuleResponse extends NumericRuleResponse {
+public class RiskScoreRuleResponse extends NumericRuleResponse {
 
-    public EwsRuleResponse(String ruleName, double value, Object[] supportingValues) {
+    public RiskScoreRuleResponse(String ruleName, double value, Object[] supportingValues) {
         super(ruleName, value, supportingValues);
     }
 
-    public EwsRuleResponse(String ruleName, double value) {
+    public RiskScoreRuleResponse(String ruleName, double value) {
         super(ruleName, value);
     }
 }

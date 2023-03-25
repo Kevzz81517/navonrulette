@@ -1,4 +1,4 @@
-package com.navonmesh.navonrulette;
+package com.navonmesh.navonrulette.model.request;
 
 import com.navonmesh.navonrulette.rule.MetaDataType;
 import com.navonmesh.navonrulette.rule.DataAttribute;
